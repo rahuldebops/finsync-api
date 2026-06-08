@@ -274,39 +274,32 @@ namespace finsyncapi.BAL.Services
                 RefreshToken = refreshToken
             };
         }
-       
-        
+
+
         // HELPER
         private void ValidateRegistration(RegisterDto req)
         {
-            switch (req.Provider)
+            if (!string.IsNullOrWhiteSpace(req.GoogleId))
             {
-                case RegistrationProvider.Email:
-                    if (string.IsNullOrWhiteSpace(req.Email))
-                        throw new AppException("Email is required");
+                req.Provider = RegistrationProvider.Google;
+            }
+            else if (!string.IsNullOrWhiteSpace(req.Email))
+            {
+                req.Provider = RegistrationProvider.Email;
 
-                    if (string.IsNullOrWhiteSpace(req.Password))
-                        throw new AppException("Password is required");
+                if (string.IsNullOrWhiteSpace(req.Password))
+                    throw new AppException("Password is required");
+            }
+            else if (!string.IsNullOrWhiteSpace(req.PhoneNumber))
+            {
+                req.Provider = RegistrationProvider.Phone;
 
-                    break;
-
-                case RegistrationProvider.Phone:
-                    if (string.IsNullOrWhiteSpace(req.PhoneNumber))
-                        throw new AppException("Phone number is required");
-
-                    if (string.IsNullOrWhiteSpace(req.Password))
-                        throw new AppException("Password is required");
-
-                    break;
-
-                case RegistrationProvider.Google:
-                    if (string.IsNullOrWhiteSpace(req.GoogleId))
-                        throw new AppException("GoogleId is required");
-
-                    break;
-
-                default:
-                    throw new AppException("Invalid registration provider");
+                if (string.IsNullOrWhiteSpace(req.Password))
+                    throw new AppException("Password is required");
+            }
+            else
+            {
+                throw new AppException("Provide Email, PhoneNumber, or GoogleId");
             }
         }
 

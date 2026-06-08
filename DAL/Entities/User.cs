@@ -35,5 +35,7 @@ public partial class User
 
     public long UpdatedBy { get; set; }
 
+    public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
+
     public virtual UserRole UserRoleNavigation { get; set; } = null!;
 }

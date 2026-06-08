@@ -29,9 +29,9 @@ public partial class ExpenseSplit
 
     public DateTime CreatedAt { get; set; }
 
-    public long UpdatedBy { get; set; }
+    public long? UpdatedBy { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public decimal? Amount { get; set; }
 

@@ -7,7 +7,7 @@ public partial class Category
 {
     public long Id { get; set; }
 
-    public long? ProfileId { get; set; }
+    public long? UserId { get; set; }
 
     public long? GroupId { get; set; }
 
@@ -31,9 +31,9 @@ public partial class Category
 
     public long CreatedBy { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
-    public long UpdatedBy { get; set; }
+    public long? UpdatedBy { get; set; }
 
     public virtual Group? Group { get; set; }
 
@@ -42,4 +42,6 @@ public partial class Category
     public virtual Category? ParentCategory { get; set; }
 
     public virtual TransactionType TransactionType { get; set; } = null!;
+
+    public virtual User? User { get; set; }
 }

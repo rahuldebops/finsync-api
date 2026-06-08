@@ -29,7 +29,7 @@ namespace finsyncapi.BAL.Services
                 throw new Helper.AppException("ProfileId is required to create an account.");
             }
 
-            return await _accountRepository.CreateAccountAsync(currentUser.UserId, currentUser.ProfileId.Value, req);
+            return await _accountRepository.CreateAccountAsync(currentUser, currentUser.ProfileId.Value, req);
         }
 
         public async Task<ResultDto<bool>> LinkAccountAsync(UserContext currentUser, LinkAccountDto req)

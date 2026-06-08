@@ -68,7 +68,7 @@ public partial class DB1Context : DbContext
             entity.Property(e => e.AccountTypeId).HasColumnName("account_type_id");
             entity.Property(e => e.Balance)
                 .HasPrecision(12, 2)
-                .HasDefaultValueSql("0.0000")
+                .HasDefaultValueSql("0.00")
                 .HasColumnName("balance");
             entity.Property(e => e.BalanceAsOf)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -198,13 +198,13 @@ public partial class DB1Context : DbContext
 
             entity.ToTable("categories", "app");
 
-            entity.HasIndex(e => new { e.ProfileId, e.CategoryName, e.TransactionTypeId }, "categories_profile_id_category_name_transaction_type_id_key").IsUnique();
+            entity.HasIndex(e => new { e.UserId, e.CategoryName, e.TransactionTypeId }, "categories_user_id_category_name_transaction_type_id_key").IsUnique();
 
             entity.HasIndex(e => new { e.CategoryName, e.TransactionTypeId }, "uq_default_categories")
                 .IsUnique()
                 .HasFilter("(is_default = true)");
 
-            entity.HasIndex(e => new { e.ProfileId, e.GroupId, e.CategoryName, e.TransactionTypeId }, "uq_user_categories")
+            entity.HasIndex(e => new { e.UserId, e.GroupId, e.CategoryName, e.TransactionTypeId }, "uq_user_categories")
                 .IsUnique()
                 .HasFilter("(is_default = false)");
 
@@ -235,12 +235,10 @@ public partial class DB1Context : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("param3");
             entity.Property(e => e.ParentCategoryId).HasColumnName("parent_category_id");
-            entity.Property(e => e.ProfileId).HasColumnName("profile_id");
             entity.Property(e => e.TransactionTypeId).HasColumnName("transaction_type_id");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.Group).WithMany(p => p.Categories)
                 .HasForeignKey(d => d.GroupId)
@@ -256,6 +254,11 @@ public partial class DB1Context : DbContext
                 .HasForeignKey(d => d.TransactionTypeId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("categories_transaction_type_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Categories)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("categories_user_id_fkey");
         });
 
         modelBuilder.Entity<Currency>(entity =>
@@ -324,9 +327,7 @@ public partial class DB1Context : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("share");
             entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
@@ -595,9 +596,7 @@ public partial class DB1Context : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("transaction_date");
             entity.Property(e => e.TransactionTypeId).HasColumnName("transaction_type_id");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Version)
@@ -660,9 +659,7 @@ public partial class DB1Context : DbContext
                 .HasColumnName("param3");
             entity.Property(e => e.ProfileId).HasColumnName("profile_id");
             entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
             entity.Property(e => e.UserId).HasColumnName("user_id");
         });

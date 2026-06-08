@@ -1,4 +1,5 @@
 using System;
+using static finsyncapi.Helpers.ValidationAttributes;
 
 namespace finsyncapi.Dto
 {
@@ -7,7 +8,8 @@ namespace finsyncapi.Dto
         public string Name { get; set; } = null!;
         public short AccountTypeId { get; set; }
         public decimal Balance { get; set; }
-        public DateTime BalanceAsOf { get; set; }
+        [Iso8601Date]
+        public string? BalanceAsOf { get; set; }
         public string CurrencyCode { get; set; } = null!;
     }
 }

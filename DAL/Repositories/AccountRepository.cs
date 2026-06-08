@@ -1,11 +1,12 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Dapper;
 using finsyncapi.BAL.Services;
 using finsyncapi.DAL.Entities;
 using finsyncapi.DAL.IRepositories;
 using finsyncapi.Dto;
+using finsyncapi.Helpers;
 using finsyncapi.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace finsyncapi.DAL.Repositories
 {
@@ -45,31 +46,40 @@ namespace finsyncapi.DAL.Repositories
             return await ExecutePagedQueryAsync<AccountDto>(connection, sql, pagination, new { UserId = userId, ProfileId = profileId });
         }
 
-        public async Task<ResultDto<SnowFlakeId>> CreateAccountAsync(long userId, long profileId, AccountCreateDto req)
+        public async Task<ResultDto<SnowFlakeId>> CreateAccountAsync(UserContext currentUser, long profileId, AccountCreateDto req)
         {
+            if (IsNullOrWhiteSpace(req.BalanceAsOf))
+            {
+                req.BalanceAsOf = System.DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+            }
+
             const string sql = @"
                 WITH new_account AS (
-                    INSERT INTO app.accounts (user_id, name, account_type_id, balance, balance_as_of, currency_code, created_by, updated_by)
-                    VALUES (@UserId, @Name, @AccountTypeId, @Balance, @BalanceAsOf, @CurrencyCode, @UserId, @UserId)
+                    INSERT INTO app.accounts (id, user_id, name, account_type_id, balance, balance_as_of, currency_code, created_by, updated_by)
+                    VALUES (@AccountId, @UserId, @Name, @AccountTypeId, @Balance, @BalanceAsOf, @CurrencyCode, @UserId, @UserId)
                     RETURNING id
                 )
-                INSERT INTO app.account_profiles (account_id, profile_id, created_by, updated_by)
-                SELECT id, @ProfileId, @UserId, @UserId FROM new_account
+                INSERT INTO app.account_profiles (id, account_id, profile_id, created_by, updated_by)
+                SELECT @AccountProfilesId, id, @ProfileId, @UserId, @UserId FROM new_account
                 RETURNING account_id;";
+            var accountId = _sfService.NextId();
+            var accountProfileId = _sfService.NextId();
 
             using var connection = _dapperContext.CreateConnection();
-            var accountId = await connection.ExecuteScalarAsync<long>(sql, new
+            var createdAccountId = await connection.ExecuteScalarAsync<long>(sql, new
             {
-                UserId = userId,
+                UserId = currentUser.UserId.Value,
                 ProfileId = profileId,
                 Name = req.Name,
                 AccountTypeId = req.AccountTypeId,
                 Balance = req.Balance,
-                BalanceAsOf = req.BalanceAsOf,
-                CurrencyCode = req.CurrencyCode
+                BalanceAsOf = DateTimeHelper.ParseUserTimeStringToUtc(req.BalanceAsOf, currentUser.TimeZone),
+                CurrencyCode = req.CurrencyCode,
+                AccountId = accountId,
+                AccountProfilesId = accountProfileId
             });
 
-            return new ResultDto<SnowFlakeId> { Data = accountId, Message = "Account created successfully", Success = true };
+            return new ResultDto<SnowFlakeId> { Data = createdAccountId, Message = "Account created successfully", Success = true };
         }
 
         public async Task<ResultDto<bool>> LinkAccountAsync(long userId, long profileId, long accountId)
@@ -102,6 +112,11 @@ namespace finsyncapi.DAL.Repositories
             await connection.ExecuteAsync(linkSql, new { Id = _sfService.NextId(), AccountId = accountId, ProfileId = profileId, UserId = userId });
 
             return new ResultDto<bool> { Success = true, Message = "Account linked successfully.", Data = true };
+        }
+
+        private static bool IsNullOrWhiteSpace(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value);
         }
     }
 }
