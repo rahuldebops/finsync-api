@@ -45,7 +45,7 @@ namespace finsyncapi.DAL.Repositories
                     LIMIT 1
                 ) tp ON TRUE
                 LEFT JOIN app.categories c ON tp.category_id = c.id AND c.is_active = TRUE
-                WHERE t.profile_id = @ProfileId AND t.is_active = TRUE AND 1=1";
+                WHERE t.profile_id = @ProfileId AND t.is_active = TRUE";
 
             using var connection = _dapperContext.CreateConnection();
             return await RawSqlQueryBuilder<PersonalTransactionListItemDto>.ExecuteAsync(connection, sql, query, new {ProfileId = profileId});

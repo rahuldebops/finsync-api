@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -12,24 +12,24 @@ namespace finsyncapi.Helpers
 {
     public static class RawSqlQueryBuilder<T>
     {
+        private const string SubqueryAlias = "q";
+
         private static readonly Dictionary<string, QueryColumnMetadata> QueryColumns =
             typeof(T)
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Select(x => new
-                {
-                    Property = x,
-                    Attribute = x.GetCustomAttribute<QueryColumnAttribute>()
-                })
-                .Where(x => x.Attribute != null)
                 .ToDictionary(
-                    x => x.Property.Name,
-                    x => new QueryColumnMetadata
+                    x => x.Name,
+                    x =>
                     {
-                        PropertyName = x.Property.Name,
-                        ColumnName = x.Attribute!.ColumnName,
-                        AllowFilter = x.Attribute.AllowFilter,
-                        AllowSort = x.Attribute.AllowSort,
-                        PropertyType = Nullable.GetUnderlyingType(x.Property.PropertyType) ?? x.Property.PropertyType
+                        var attr = x.GetCustomAttribute<QueryColumnAttribute>();
+                        return new QueryColumnMetadata
+                        {
+                            PropertyName = x.Name,
+                            OuterColumnName = x.Name.ToLowerInvariant(),
+                            AllowFilter = attr?.AllowFilter ?? true,
+                            AllowSort = attr?.AllowSort ?? true,
+                            PropertyType = Nullable.GetUnderlyingType(x.PropertyType) ?? x.PropertyType
+                        };
                     },
                     StringComparer.OrdinalIgnoreCase);
 
@@ -40,15 +40,17 @@ namespace finsyncapi.Helpers
 
             var dynamicParameters = new DynamicParameters(parameters);
 
-            var sqlBuilder = new StringBuilder(baseQuery.Trim());
+            // Wrap the base query as a subquery
+            var outerSql = new StringBuilder();
+            outerSql.Append($"SELECT * FROM ({baseQuery.Trim()}) AS {SubqueryAlias}");
 
-            AppendFilters(sqlBuilder,dynamicParameters,queryParameters.FilterModel);
+            AppendFilters(outerSql,dynamicParameters,queryParameters.FilterModel);
 
-            AppendSorting(sqlBuilder,queryParameters.SortItems);
+            AppendSorting(outerSql,queryParameters.SortItems);
 
-            AppendPagination(sqlBuilder,dynamicParameters,queryParameters.Page,queryParameters.PageSize);
+            AppendPagination(outerSql,dynamicParameters,queryParameters.Page,queryParameters.PageSize);
 
-            string finalQuery = sqlBuilder.ToString();
+            string finalQuery = outerSql.ToString();
 
             string countQuery = BuildCountQuery(baseQuery,queryParameters.FilterModel,dynamicParameters);
 
@@ -107,13 +109,13 @@ namespace finsyncapi.Helpers
                 filterModel.Operator.Equals("or",StringComparison.OrdinalIgnoreCase)? " OR ": " AND ";
 
             sql.AppendLine();
-            sql.Append(" AND ");
+            sql.Append(" WHERE ");
             sql.Append(string.Join(globalOperator, globalConditions));
         }
 
         private static string? BuildCondition(QueryColumnMetadata metadata,Condition condition,string parameterName,DynamicParameters parameters)
         {
-            string column = metadata.ColumnName;
+            string column = $"{SubqueryAlias}.{metadata.OuterColumnName}";
 
             string matchMode =condition.MatchMode?.Trim()?.ToLowerInvariant()?? "equals";
 
@@ -246,7 +248,7 @@ namespace finsyncapi.Helpers
                     continue;
 
                 orderByClauses.Add(
-                    $"{metadata.ColumnName} {(item.Descending ? "DESC" : "ASC")}");
+                    $"{SubqueryAlias}.{metadata.OuterColumnName} {(item.Descending ? "DESC" : "ASC")}");
             }
 
             if (orderByClauses.Count == 0)
@@ -270,11 +272,12 @@ namespace finsyncapi.Helpers
 
         private static string BuildCountQuery(string baseQuery,FilterModel filterModel,DynamicParameters parameters)
         {
-            var sql = new StringBuilder(baseQuery.Trim());
+            var outerSql = new StringBuilder();
+            outerSql.Append($"SELECT * FROM ({baseQuery.Trim()}) AS {SubqueryAlias}");
 
-            AppendFilters(sql, parameters, filterModel);
+            AppendFilters(outerSql, parameters, filterModel);
 
-            return $"SELECT COUNT(*) FROM ({sql}) count_query";
+            return $"SELECT COUNT(*) FROM ({outerSql}) AS count_query";
         }
 
         private static object? ConvertValue(object? value,Type targetType)

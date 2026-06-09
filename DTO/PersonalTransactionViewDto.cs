@@ -56,7 +56,6 @@ namespace finsyncapi.DTO
         public string TransactionTypeName { get; set; } = string.Empty;
         public SnowFlakeId CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
-        [QueryColumn("t.title", AllowSort = true, AllowFilter = true)]
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string TransactionDate { get; set; } = string.Empty;

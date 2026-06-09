@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using finsyncapi.Helpers;
 
@@ -47,7 +47,7 @@ namespace finsyncapi.Models
     {
         public required string PropertyName { get; init; }
 
-        public required string ColumnName { get; init; }
+        public required string OuterColumnName { get; init; }
 
         public required bool AllowFilter { get; init; }
 
@@ -59,15 +59,8 @@ namespace finsyncapi.Models
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class QueryColumnAttribute : Attribute
     {
-        public string ColumnName { get; }
-
         public bool AllowFilter { get; set; } = true;
 
         public bool AllowSort { get; set; } = true;
-
-        public QueryColumnAttribute(string columnName)
-        {
-            ColumnName = columnName;
-        }
     }
 }
