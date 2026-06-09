@@ -26,9 +26,8 @@ namespace finsyncapi.Helpers
                         {
                             PropertyName = x.Name,
                             OuterColumnName = x.Name.ToLowerInvariant(),
-                            AllowFilter = attr?.AllowFilter ?? true,
-                            AllowSort = attr?.AllowSort ?? true,
-                            PropertyType = Nullable.GetUnderlyingType(x.PropertyType) ?? x.PropertyType
+                            PropertyType = Nullable.GetUnderlyingType(x.PropertyType) ?? x.PropertyType,
+                            DataType = attr?.DataType
                         };
                     },
                     StringComparer.OrdinalIgnoreCase);
@@ -77,9 +76,6 @@ namespace finsyncapi.Helpers
                 if (!QueryColumns.TryGetValue(filter.Key, out var metadata))
                     continue;
 
-                if (!metadata.AllowFilter)
-                    continue;
-
                 var fieldConditions = new List<string>();
 
                 foreach (var condition in filter.Value)
@@ -119,7 +115,12 @@ namespace finsyncapi.Helpers
 
             string matchMode =condition.MatchMode?.Trim()?.ToLowerInvariant()?? "equals";
 
-            object? value = ConvertValue(condition.Value,metadata.PropertyType);
+            Type conversionType = metadata.DataType ?? metadata.PropertyType;
+
+            // For list-based match modes, conversion happens after splitting inside each case.
+            object? value = matchMode is "between" or "in" or "notin"
+                ? condition.Value
+                : ConvertValue(condition.Value, conversionType);
 
             switch (matchMode)
             {
@@ -174,10 +175,10 @@ namespace finsyncapi.Helpers
                         string endParam = $"{parameterName}_end";
 
                         parameters.Add(startParam,
-                            ConvertValue(items[0], metadata.PropertyType));
+                            ConvertValue(items[0], conversionType));
 
                         parameters.Add(endParam,
-                            ConvertValue(items[1], metadata.PropertyType));
+                            ConvertValue(items[1], conversionType));
 
                         return $"{column} BETWEEN @{startParam} AND @{endParam}";
                     }
@@ -189,7 +190,7 @@ namespace finsyncapi.Helpers
                         if (list.Count == 0)
                             return null;
 
-                        parameters.Add(parameterName, list.Select(v => ConvertValue(v, metadata.PropertyType)).ToList());
+                        parameters.Add(parameterName, list.Select(v => ConvertValue(v, conversionType)).ToList());
 
                         return $"{column} = ANY(@{parameterName})";
                     }
@@ -201,7 +202,7 @@ namespace finsyncapi.Helpers
                         if (list.Count == 0)
                             return null;
 
-                        parameters.Add(parameterName, list.Select(v => ConvertValue(v, metadata.PropertyType)).ToList());
+                        parameters.Add(parameterName, list.Select(v => ConvertValue(v, conversionType)).ToList());
 
                         return $"NOT ({column} = ANY(@{parameterName}))";
                     }
@@ -233,9 +234,6 @@ namespace finsyncapi.Helpers
             foreach (var item in sortItems)
             {
                 if (!QueryColumns.TryGetValue(item.Field, out var metadata))
-                    continue;
-
-                if (!metadata.AllowSort)
                     continue;
 
                 orderByClauses.Add(
@@ -293,14 +291,39 @@ namespace finsyncapi.Helpers
             if (value == null)
                 return null;
 
+            if (targetType == value.GetType())
+                return value;
+
+            string str = value.ToString()!;
+
             if (targetType.IsEnum)
             {
-                return Enum.Parse(targetType,value.ToString()!,true);
+                return Enum.Parse(targetType,str,true);
             }
 
             if (targetType == typeof(Guid))
             {
-                return Guid.Parse(value.ToString()!);
+                return Guid.Parse(str);
+            }
+
+            if (targetType == typeof(DateTime))
+            {
+                return DateTime.Parse(str, null, System.Globalization.DateTimeStyles.RoundtripKind);
+            }
+
+            if (targetType == typeof(DateTimeOffset))
+            {
+                return DateTimeOffset.Parse(str, null, System.Globalization.DateTimeStyles.RoundtripKind);
+            }
+
+            if (targetType == typeof(DateOnly))
+            {
+                return DateOnly.Parse(str);
+            }
+
+            if (targetType == typeof(TimeOnly))
+            {
+                return TimeOnly.Parse(str);
             }
 
             return Convert.ChangeType(value, targetType);

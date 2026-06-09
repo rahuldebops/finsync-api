@@ -58,6 +58,7 @@ namespace finsyncapi.DTO
         public string CategoryName { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
+        [QueryColumn(DataType = typeof(DateTime))]
         public string TransactionDate { get; set; } = string.Empty;
     }
     

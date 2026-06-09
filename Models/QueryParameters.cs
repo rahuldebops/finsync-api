@@ -49,18 +49,19 @@ namespace finsyncapi.Models
 
         public required string OuterColumnName { get; init; }
 
-        public required bool AllowFilter { get; init; }
-
-        public required bool AllowSort { get; init; }
-
         public required Type PropertyType { get; init; }
+
+        public Type? DataType { get; init; }
     }
 
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class QueryColumnAttribute : Attribute
     {
-        public bool AllowFilter { get; set; } = true;
-
-        public bool AllowSort { get; set; } = true;
+        /// <summary>
+        /// Override the type used for filter parameter conversion.
+        /// Use when the DTO property type differs from the DB column type
+        /// (e.g., property is string but DB column is timestamp).
+        /// </summary>
+        public Type? DataType { get; set; }
     }
 }
