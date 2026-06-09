@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using finsyncapi.Models; // Adjust to your models namespace
 
@@ -52,12 +52,12 @@ namespace finsyncapi.Helpers
                 var matchMode = op switch
                 {
                     "eq" => "equals",
-                    "gte" => "greaterThanOrEqual",
-                    "gt" => "greaterThan",
-                    "lte" => "lessThanOrEqual",
-                    "lt" => "lessThan",
-                    "contains" => "contains",
-                    _ => "equals"
+                    "neq" => "notequals",
+                    "gt" => "greaterthan",
+                    "gte" => "greaterthanorequal",
+                    "lt" => "lessthan",
+                    "lte" => "lessthanorequal",
+                    _ => op // pass through as-is (contains, notcontains, startswith, endswith, between, in, notin, isnull, isnotnull, isempty, isnotempty, equals, etc.)
                 };
 
                 if (!filterModel.Filters.ContainsKey(field))

@@ -68,21 +68,33 @@ Precisely select which data to retrieve by applying conditions to specific field
 *   **Parameter:** `filter`
 *   **Syntax:** `filter[{field}][{operator}]={value}`
     *   `{field}`: The name of the property you want to filter on (e.g., `status`).
-    *   `{operator}`: (Optional) The comparison operator to use. If omitted, it defaults to `eq` (equals).
+    *   `{operator}`: (Optional) The comparison operator to use. If omitted, it defaults to `equals`.
     *   `{value}`: The value to compare against.
 
 ### Supported Operators
 
-| Operator | Description                | Example                                             |
-| :------- | :------------------------- | :-------------------------------------------------- |
-| `eq`     | Equals                     | `filter[status]=active`                             |
-| `contains`| String contains the value  | `filter[name][contains]=project`                    |
-| `gt`     | Greater Than               | `filter[memberCount][gt]=10`                        |
-| `gte`    | Greater Than or Equal To   | `filter[createdAt][gte]=2025-08-01`                 |
-| `lt`     | Less Than                  | `filter[priority][lt]=5`                            |
-| `lte`    | Less Than or Equal To      | `filter[budget][lte]=50000`                         |
+| Operator         | Description                          | Example                                                        |
+| :--------------- | :----------------------------------- | :------------------------------------------------------------- |
+| `equals`         | Equals (default if omitted)          | `filter[status]=active`                                        |
+| `notequals`      | Not equals                           | `filter[status][notequals]=archived`                           |
+| `contains`       | String contains the value (ILIKE)    | `filter[name][contains]=project`                               |
+| `notcontains`    | String does not contain (NOT ILIKE)  | `filter[name][notcontains]=test`                               |
+| `startswith`     | String starts with (ILIKE)           | `filter[name][startswith]=fin`                                 |
+| `endswith`       | String ends with (ILIKE)             | `filter[name][endswith]=sync`                                  |
+| `greaterthan`    | Greater than                         | `filter[memberCount][greaterthan]=10`                          |
+| `greaterthanorequal` | Greater than or equal to         | `filter[createdAt][greaterthanorequal]=2025-08-01`             |
+| `lessthan`       | Less than                            | `filter[priority][lessthan]=5`                                 |
+| `lessthanorequal`| Less than or equal to                | `filter[budget][lessthanorequal]=50000`                        |
+| `between`        | Between two values (inclusive)       | `filter[amount][between]=100,500`                              |
+| `in`             | Matches any value in a list          | `filter[status][in]=active,pending`                            |
+| `notin`          | Does not match any value in a list   | `filter[status][notin]=archived,deleted`                       |
+| `isnull`         | Value is NULL                        | `filter[description][isnull]=true`                             |
+| `isnotnull`      | Value is not NULL                    | `filter[description][isnotnull]=true`                          |
+| `isempty`        | Value is NULL or empty string        | `filter[notes][isempty]=true`                                  |
+| `isnotempty`     | Value is not NULL and not empty      | `filter[notes][isnotempty]=true`                               |
 
 ### Use Cases
+
 *   **Get all groups with the status "active":**
     ```
     GET /api/groups?filter[status]=active
@@ -93,15 +105,35 @@ Precisely select which data to retrieve by applying conditions to specific field
     GET /api/groups?filter[name][contains]=Internal
     ```
 
+*   **Get all groups whose name starts with "Fin":**
+    ```
+    GET /api/groups?filter[name][startswith]=Fin
+    ```
+
 *   **Get all groups created on or after August 1st, 2025:**
     ```
-    GET /api/groups?filter[createdAt][gte]=2025-08-01
+    GET /api/groups?filter[createdAt][greaterthanorequal]=2025-08-01
+    ```
+
+*   **Get all transactions with amount between 100 and 500:**
+    ```
+    GET /api/transactions?filter[amount][between]=100,500
+    ```
+
+*   **Get all groups with status in a specific set:**
+    ```
+    GET /api/groups?filter[status][in]=active,pending
+    ```
+
+*   **Get all items where description is not empty:**
+    ```
+    GET /api/groups?filter[description][isnotempty]=true
     ```
 
 *   **Apply multiple filters (returns items matching ALL conditions):**
     *Get active groups with more than 5 members.*
     ```
-    GET /api/groups?filter[status]=active&filter[memberCount][gt]=5
+    GET /api/groups?filter[status]=active&filter[memberCount][greaterthan]=5
     ```
 
 ---
@@ -116,5 +148,6 @@ You can combine all parameters to build powerful and precise queries.
 
 *   **Request:**
     ```
-    GET /api/groups?page=2&pageSize=5&sort=-priority,name&filter[name][contains]=API&filter[status]=active&filter[priority][lte]=3
+    GET /api/groups?page=2&pageSize=5&sort=-priority,name&filter[name][contains]=API&filter[status]=active&filter[priority][lessthanorequal]=3
     ```
+

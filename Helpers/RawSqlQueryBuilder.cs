@@ -165,10 +165,7 @@ namespace finsyncapi.Helpers
 
                 case "between":
                     {
-                        if (condition.Value is not IEnumerable<object> values)
-                            return null;
-
-                        var items = values.ToList();
+                        var items = ParseListValues(condition.Value);
 
                         if (items.Count != 2)
                             return null;
@@ -187,30 +184,24 @@ namespace finsyncapi.Helpers
 
                 case "in":
                     {
-                        if (condition.Value is not IEnumerable<object> values)
-                            return null;
-
-                        var list = values.ToList();
+                        var list = ParseListValues(condition.Value);
 
                         if (list.Count == 0)
                             return null;
 
-                        parameters.Add(parameterName, list);
+                        parameters.Add(parameterName, list.Select(v => ConvertValue(v, metadata.PropertyType)).ToList());
 
                         return $"{column} = ANY(@{parameterName})";
                     }
 
                 case "notin":
                     {
-                        if (condition.Value is not IEnumerable<object> values)
-                            return null;
-
-                        var list = values.ToList();
+                        var list = ParseListValues(condition.Value);
 
                         if (list.Count == 0)
                             return null;
 
-                        parameters.Add(parameterName, list);
+                        parameters.Add(parameterName, list.Select(v => ConvertValue(v, metadata.PropertyType)).ToList());
 
                         return $"NOT ({column} = ANY(@{parameterName}))";
                     }
@@ -278,6 +269,23 @@ namespace finsyncapi.Helpers
             AppendFilters(outerSql, parameters, filterModel);
 
             return $"SELECT COUNT(*) FROM ({outerSql}) AS count_query";
+        }
+
+        private static List<object> ParseListValues(object? value)
+        {
+            if (value is string str)
+            {
+                return str.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                          .Cast<object>()
+                          .ToList();
+            }
+
+            if (value is IEnumerable<object> enumerable)
+            {
+                return enumerable.ToList();
+            }
+
+            return new List<object>();
         }
 
         private static object? ConvertValue(object? value,Type targetType)
