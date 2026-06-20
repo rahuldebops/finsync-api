@@ -326,6 +326,11 @@ namespace finsyncapi.Helpers
                 return TimeOnly.Parse(str);
             }
 
+            if (targetType == typeof(SnowFlakeId))
+            {
+                return SnowFlakeId.Parse(str);
+            }
+
             return Convert.ChangeType(value, targetType);
         }
     }

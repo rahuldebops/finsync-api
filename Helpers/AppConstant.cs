@@ -50,6 +50,7 @@ namespace finsyncapi.Helper
 
         // Transction
         public static readonly string TransactionAdded = "New transaction added successfully.";
+        public static readonly string TransactionUpdated = "Transaction updated successfully.";
         public static readonly string TransactionFetched = "Transaction fetched successfully.";
         public static readonly string InvalidTransactionType = "Invalid or inactive transaction type.";
         public static readonly string GroupNotAllowedForType = "This transaction type is not allowed for group transactions.";
