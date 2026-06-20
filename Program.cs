@@ -13,6 +13,7 @@ using finsyncapi.Extension;
 using Hangfire;
 using Hangfire.PostgreSql;
 using finsyncapi.Models;
+using System.Text.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,6 +98,14 @@ builder.Services.AddHangfireServer(options =>
     options.SchedulePollingInterval = TimeSpan.FromHours(1);
     options.ServerCheckInterval = TimeSpan.FromHours(1); 
 });
+
+// Program.cs
+builder.Services.AddControllers().AddJsonOptions(opts =>
+{
+    opts.JsonSerializerOptions.Converters.Add(new EncodedIdJsonConverter());
+    opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
+
 
 // LOGGING
 builder.Logging.AddFilter("Npgsql", LogLevel.Warning);

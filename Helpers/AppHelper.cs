@@ -2,6 +2,8 @@
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using finsyncapi.Models;
 
 namespace finsyncapi.Helper
 {
@@ -152,6 +154,26 @@ namespace finsyncapi.Helper
             // Remove only trailing semicolons and whitespace
             return query.Trim().TrimEnd(';').TrimEnd();
         }
+    }
+    public static class JsonExtensions
+    {
+        public static readonly JsonSerializerOptions EncodedOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new EncodedIdJsonConverter() }
+        };
+
+        private static readonly JsonSerializerOptions RawOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new RawSnowFlakeIdJsonConverter() }
+        };
+
+        public static string ToJson(this object value)
+            => JsonSerializer.Serialize(value, RawOptions);
+
+        public static string ToEncodedJson(this object value)
+            => JsonSerializer.Serialize(value, EncodedOptions);
     }
 
 }

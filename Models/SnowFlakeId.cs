@@ -6,7 +6,6 @@ using finsyncapi.Helpers;
 
 namespace finsyncapi.Models
 {
-    [JsonConverter(typeof(EncodedIdJsonConverter))]
     [TypeConverter(typeof(EncodedIdTypeConverter))]
     public readonly struct SnowFlakeId
     {
@@ -32,7 +31,16 @@ namespace finsyncapi.Models
         public override void Write(Utf8JsonWriter writer, SnowFlakeId value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
+            //writer.WriteNumberValue(value.Value);
         }
+    }
+    public class RawSnowFlakeIdJsonConverter : JsonConverter<SnowFlakeId>
+    {
+        public override SnowFlakeId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => new SnowFlakeId(reader.GetInt64());
+
+        public override void Write(Utf8JsonWriter writer, SnowFlakeId value, JsonSerializerOptions options)
+            => writer.WriteNumberValue(value.Value);
     }
 
     public class EncodedIdTypeConverter : TypeConverter

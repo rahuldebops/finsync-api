@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using AutoMapper;
 using finsyncapi.BAL.IServices;
 using finsyncapi.DAL;
@@ -27,6 +29,10 @@ namespace finsyncapi.BAL.Services
 
         public async Task<ResultDto<SnowFlakeId>> AddPersonalTransactionAsync(UserContext currentUser, PersonalTransactionCreateDto req)
         {
+
+            var a = currentUser.ToJson();
+            var b = req.ToJson();
+
             TransactionType tt = await _transactionRepository.GetSingleWithSelectedColoumnAysnc<TransactionType, TransactionType>(x => new TransactionType { Id = x.Id, DebitCredit = x.DebitCredit }, y => y.Id == req.TransactionTypeId);
              
 

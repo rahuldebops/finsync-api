@@ -2,7 +2,7 @@ namespace finsyncapi.Helper
 {
     public static class AppConstant
     {
-        public static int ACCESSTOKEN_EXPIRES_SEC = 300;
+        public static int ACCESSTOKEN_EXPIRES_SEC = 3000;
         public static int REFRESHTOKEN_EXPIRES_SEC = 86400;
 
         public static int OTP_LENGTH = 6;
