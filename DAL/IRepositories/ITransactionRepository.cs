@@ -1,5 +1,6 @@
 using finsyncapi.DAL.Entities;
 using finsyncapi.DTO;
+using finsyncapi.Dto;
 using finsyncapi.Models;
 
 namespace finsyncapi.DAL.IRepositories
@@ -8,5 +9,6 @@ namespace finsyncapi.DAL.IRepositories
     {
         Task<PersonalTransactionViewDto?> GetPersonalTransactionByIdAsync(long transactionId, long profileId);
         Task<PagedResponse<PersonalTransactionListItemDto>> GetPersonalTransactionsListAsync(long profileId, QueryParameters query);
+        Task<ResultDto<SnowFlakeId>> AddPersonalTransactionDbAsync(string payload);
     }
 }

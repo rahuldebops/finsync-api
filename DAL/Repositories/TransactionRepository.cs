@@ -2,11 +2,13 @@ using Dapper;
 using finsyncapi.DAL.Entities;
 using finsyncapi.DAL.IRepositories;
 using finsyncapi.DTO;
+using finsyncapi.Dto;
 using finsyncapi.Helper;
 using finsyncapi.Helpers;
 using finsyncapi.Models;
 using Microsoft.EntityFrameworkCore;
 using static finsyncapi.Helpers.Enums;
+using System.Text.Json;
 
 namespace finsyncapi.DAL.Repositories
 {
@@ -116,8 +118,25 @@ namespace finsyncapi.DAL.Repositories
             return result;
         }
 
+        public async Task<ResultDto<SnowFlakeId>> AddPersonalTransactionDbAsync(string payload)
+        {
+            const string sql = "SELECT txn.fn_add_personal_transaction(@Payload::jsonb);";
+            using var connection = _dapperContext.CreateConnection();
+            var jsonResult = await connection.ExecuteScalarAsync<string>(sql, new { Payload = payload });
 
+            var dbResult = JsonSerializer.Deserialize<DbFunctionResultDto<AddTransactionDataDto>>(jsonResult);
 
-
+            if (dbResult.Success)
+            {
+                return new ResultDto<SnowFlakeId>
+                {
+                    Data = dbResult.Data.TransactionId,
+                    Message = dbResult?.Message ?? "",
+                    Success = dbResult?.Success ?? false
+                };
+            }
+            throw new AppException(dbResult.Message);
+            
+        }
     }
 }

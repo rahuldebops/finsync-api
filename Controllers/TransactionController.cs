@@ -27,7 +27,7 @@ namespace finsyncapi.Controllers
         public async Task<IActionResult> AddPersonalTransaction([FromBody] PersonalTransactionCreateDto req)
         {
             var currentUser = _claimService.UserContext;
-            var res = await _transactionService.AddPersonalTransactionAsync(currentUser, req);
+            var res = await _transactionService.AddPersonalTransactionDbAsync(currentUser, req);
             return Ok(ResponseHelper.Success(res.Data, res.Message));
         }
 

@@ -1,6 +1,7 @@
 using finsyncapi.Helpers;
 using finsyncapi.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using static finsyncapi.Helpers.ValidationAttributes;
 
 namespace finsyncapi.DTO
@@ -49,7 +50,16 @@ namespace finsyncapi.DTO
         [Required]
         public required PaymentDto Payment { get; set; }
     }
+    public class PersonalTransactionUpdateDto : PersonalTransactionCreateDto
+    {
+        public SnowFlakeId TransactionId { get; set; }
+    }
 
+    public class AddTransactionDataDto
+    {
+        [JsonPropertyName("transactionId")]
+        public long TransactionId { get; set; }
+    }
     public class GroupTransactionCreateDto
     {
         [Required]
