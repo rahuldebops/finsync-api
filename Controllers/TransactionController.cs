@@ -31,6 +31,14 @@ namespace finsyncapi.Controllers
             return Ok(ResponseHelper.Success(res.Data, res.Message));
         }
 
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdatePersonalTransaction([FromBody] PersonalTransactionUpdateDto req)
+        {
+            var currentUser = _claimService.UserContext;
+            var res = await _transactionService.UpdatePersonalTransactionDbAsync(currentUser, req);
+            return Ok(ResponseHelper.Success(res.Data, res.Message));
+        }
+
         [HttpGet("list")]
         public async Task<IActionResult> GetPersonalTransactions([FromQuery] QueryParameters query)
         {

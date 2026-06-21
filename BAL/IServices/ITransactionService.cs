@@ -8,6 +8,7 @@ namespace finsyncapi.BAL.IServices
     {
         Task<ResultDto<SnowFlakeId>> AddPersonalTransactionAsync(UserContext currentUser, PersonalTransactionCreateDto req);
         Task<ResultDto<SnowFlakeId>> AddPersonalTransactionDbAsync(UserContext currentUser, PersonalTransactionCreateDto req);
+        Task<ResultDto<SnowFlakeId>> UpdatePersonalTransactionDbAsync(UserContext currentUser, PersonalTransactionUpdateDto req);
         Task<ResultDto<PersonalTransactionViewDto>> GetPersonalTransactionByIdAsync(UserContext currentUser, SnowFlakeId transactionId);
         Task<PagedResponse<PersonalTransactionListItemDto>> GetPersonalTransactionsListAsync(UserContext currentUser, QueryParameters pagination);
     }

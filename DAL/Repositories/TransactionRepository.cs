@@ -138,5 +138,23 @@ namespace finsyncapi.DAL.Repositories
             throw new AppException(dbResult.Message);
             
         }
+        public async Task<ResultDto<SnowFlakeId>> UpdatePersonalTransactionDbAsync(string payload)
+        {
+            const string sql = "SELECT txn.fn_update_personal_transaction(@Payload::jsonb);";
+            using var connection = _dapperContext.CreateConnection();
+            var jsonResult = await connection.ExecuteScalarAsync<string>(sql, new { Payload = payload });
+            var dbResult = JsonSerializer.Deserialize<DbFunctionResultDto<AddTransactionDataDto>>(jsonResult);
+
+            if (dbResult.Success)
+            {
+                return new ResultDto<SnowFlakeId>
+                {
+                    Data = dbResult.Data.TransactionId,
+                    Message = dbResult?.Message ?? "",
+                    Success = dbResult?.Success ?? false
+                };
+            }
+            throw new AppException(dbResult.Message);
+        }
     }
 }

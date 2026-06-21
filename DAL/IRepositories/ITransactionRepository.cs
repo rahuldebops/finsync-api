@@ -10,5 +10,6 @@ namespace finsyncapi.DAL.IRepositories
         Task<PersonalTransactionViewDto?> GetPersonalTransactionByIdAsync(long transactionId, long profileId);
         Task<PagedResponse<PersonalTransactionListItemDto>> GetPersonalTransactionsListAsync(long profileId, QueryParameters query);
         Task<ResultDto<SnowFlakeId>> AddPersonalTransactionDbAsync(string payload);
+        Task<ResultDto<SnowFlakeId>> UpdatePersonalTransactionDbAsync(string payload);
     }
 }

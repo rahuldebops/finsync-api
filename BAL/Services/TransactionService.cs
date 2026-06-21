@@ -157,6 +157,12 @@ namespace finsyncapi.BAL.Services
             return await _transactionRepository.AddPersonalTransactionDbAsync(payloadJson);
         }
 
+        public async Task<ResultDto<SnowFlakeId>> UpdatePersonalTransactionDbAsync(UserContext currentUser, PersonalTransactionUpdateDto req)
+        {
+            var payloadJson = $"{{\"userContext\": {currentUser.ToJson()}, \"payload\": {req.ToJson()}}}";
+            return await _transactionRepository.UpdatePersonalTransactionDbAsync(payloadJson);
+        }
+
         public async Task<PagedResponse<PersonalTransactionListItemDto>> GetPersonalTransactionsListAsync(UserContext currentUser, QueryParameters query)
         {
             return await _transactionRepository.GetPersonalTransactionsListAsync(currentUser.ProfileId!.Value, query);
